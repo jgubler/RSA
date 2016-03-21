@@ -9,30 +9,46 @@
 //Right now, it only generates two (probable) primes and does nothing with them
 int main() {
     srand(time(NULL));
-    int p = chooseprime();
-    int q = chooseprime();
-    while(p==q) q = chooseprime();
-    long long n = ((long long)p) * ((long long)q);
-    printf("p is %d\nq is %d\nn is %lld\n", p, q, n);
+    // Choose p and q as 16-Bit pseudo random numbers (WARNING: rand() is no CSPRNG)
+    long p = (long) chooseprime();
+    long q = (long) chooseprime();
+    while(p==q) {
+        q = chooseprime();
+    }
+    long n = p * q;
+    long phi = (p-1)*(q-1);
+    // RSA: Choose e as a any number < phi with gcd(e,phi)==1 
+    // for fast encryption we will choose e<1000, as this does not reduce security
+    long e, d;
+    do {
+        e = (rand() % 1000) % phi;
+        d = modularInverse(e,phi);
+    } while (e == p-1 || e == q-1 || d == -1);
+    printf("n is %ld\ne is %ld\nd is %ld\nphi is %ld\np is %ld\nq is %ld\n", n, e, d, phi, p, q);
     return 0;
 }
 
-// chooses a prime between 0 and 9,999,999
+// chooses a prime between 0 and max (0 equals SIZE_INT)
+// be aware that introducing a max will make the distribution less random, 
+// unless max is a factor of SIZE_INT
 int chooseprime() {
-    int x=0;
-    while(x==0) {
-        x = rand();
-        //printf("x is %d\n", x);
-        if(testprime(x)!=0) x=0;
+    int potPrime = 0;
+    while(potPrime == 0) {
+        potPrime = rand();
+        //printf("potPrime is %d\n", potPrime);
+        if(testprime(potPrime)!=0) { 
+            potPrime=0;
+        }
     }
-    return x;
+    return potPrime;
 }
 
 // does several tests to approximate whether p is probably prime
-// (1 and 2 are excluded primes)
+// (1 and 2 are excluded primes), returns 0 for primes, 1 for composites
 int testprime(int potPrime) {
-    if(potPrime == 1 || potPrime%2 == 0) return 1;
-    if(fermat(potPrime, 15) != 0) return 1;
+    if(potPrime < 3 || potPrime%2 == 0 || fermat(potPrime, 15) != 0) {
+        return 1;
+    }
     return 0;
 }
 
@@ -51,42 +67,83 @@ int fermat(int potPrime, int precision) {
                 coprime = 0;
             }            
         }
-        if(modularExp(coprime, potPrime-1, potPrime) != 1) 
+        if(modularExp(coprime, potPrime-1, potPrime) != 1) {
             return 1;
+        }
     }
     return 0;
 }
 
 // Implements a^b mod n, with fast exponentiation through square&multiply
-int modularExp(int a, int b, int n) {
-    // log2(b)
+int modularExp (int a, int b, int n) {
+    // log2(b) = ln(b)/ln(2)
     int explog = log(b)/log(2);
     long long res = a;
     int currentBit = 0;
     // traverse the bits of b, square for every bit and if it is 1, multiply as well
     for(int i=explog-1; i>=0; i--) {
-        res *= res;
+        res = (res * res) % n;
         // to get the bit for the current SAM cycle, we need to right shift by i and extract the last bit
         currentBit = (b>>i) % 2;
-        if(currentBit==1) res *=a;
-        res %= n;
+        if(currentBit==1) {
+            res = (res * a) % n;
+        }
     }
     return res;
 }
 
 // Approximates whether x is a prime by calculating the miller-rabin test
 // TODO: Actually make it do something
-int miller(int potPrime) {
+int miller (int potPrime) {
     return 0;
 }
 
 // Compute gcd with Euclidean algorithm
-int gcd (int pa, int pb) {
-    int a = pa, b = pb, c = 0;
+long gcd (long a, long b) {
+    long c = 0;
     while(a != 0) {
         c = a;
         a = b%a;
         b = c;
     }
     return b;
+}
+
+// Compute the modular inverse a^(-1) mod m with the Extended Euclidean Algorithm
+// Returns the modular inverse (shifted into Zn, no negative results) or -1 if gcd(a,n) != 1
+long modularInverse (long a, long m) {
+    int step = 2;
+    // Don't know how many steps gcd will take yet, so I just ballparked 100 as a max
+    // TODO: Fix this crap
+    long down[1000];
+    down[0] = m;
+    down[1] = a;
+    // This loop is basically the ordinary Euclidean Algorithm, doing the gcd calculation and
+    // saving all intermediate results in 'down' as this part is going 'downwards' in the table
+    while(down[step-1] != 0) {
+        down[step] = down[step-2] % down[step-1];
+        step++;
+    }
+
+    // Sanity check, making sure down[step-2] (= gcd(a,m)) = 1
+    if(down[step-2] != 1) {
+        return -1L;
+    }
+
+    // Following now is the extended part of the EEA, computing the inverse 'upwards'
+    long up[step-1];
+    up[step-2] = 0;
+    up[step-3] = 1;
+
+    for(int i=step-4; i>=0; i--) {
+        up[i] = up[i+2] - up[i+1] * (down[i] / down[i+1]);
+    }
+    
+    long res = up[0];
+    // if the inverse is negative, convert it into Zn by adding m
+    if(res < 0) {
+        res += m;
+    }
+
+    return res;
 }

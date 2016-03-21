@@ -6,6 +6,7 @@ int testprime(int);
 int fermat(int,int);
 int modularExp(int,int,int);
 int miller(int);
-int gcd(int,int);
+long gcd(long,long);
+long modularInverse(long,long);
 
 #endif // KEYGEN_H_
