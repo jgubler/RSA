@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 
 //keygen.c
 //Will generate a RSA keypair, sometime in the distant future at least
@@ -20,7 +21,7 @@ int main() {
 int chooseprime() {
     int x=0;
     while(x==0) {
-        x = rand()%10000000;
+        x = rand();
         //printf("x is %d\n", x);
         if(testprime(x)!=0) x=0;
     }
@@ -43,14 +44,28 @@ int testprime(int p) {
 int fermat(int b) {
     int bases[5] = {3,5,7,11,13};
     long long res = 1;
-    for(int i=0;i<sizeof(bases)/sizeof(bases[0]);i++) {
-        for(int j=0;j<b-1 && b!=bases[i];j++) {
-            res *= bases[i];
-            res = res%b;
-        }
-        if(res!=1) return 1;
+    for(int i=0;i<sizeof(bases)/sizeof(bases[0]);i++) {   
+        if(exponentialmod(bases[i], b) != 1) 
+            return 1;
     }
     return 0;
+}
+
+// Implements a^(b-1) mod b, with fast exponentiation through square&multiply
+int exponentialmod(int a, int b) {
+    // log2(b-1)
+    int explog = log(b-1)/log(2);
+    long long res = a;
+    int currentbit = 0;
+    // traverse the bits of b-1, square for every bit and if it is 1, multiply as well
+    for(int i=explog-1;i>=0;i--) {
+        res *= res;
+        // to get the bit for the current SAM cycle, we need to right shift by i and extract the last bit
+        currentbit = ((b-1)>>i)%2;
+        if(currentbit==1) res *=a;
+        res %= b;
+    }
+    return res;
 }
 
 // Approximates whether x is a prime by calculating the miller-rabin test
