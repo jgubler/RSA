@@ -23,8 +23,13 @@ int main() {
     do {
         e = (rand() % 1000) % phi;
         d = modularInverse(e,phi);
-    } while (e == p-1 || e == q-1 || d == -1);
-    printf("n is %ld\ne is %ld\nd is %ld\nphi is %ld\np is %ld\nq is %ld\n", n, e, d, phi, p, q);
+    } while (e == 1 || e == p-1 || e == q-1 || d == -1);
+    //printf("n is %ld\ne is %ld\nd is %ld\nphi is %ld\np is %ld\nq is %ld\n", n, e, d, phi, p, q);
+    int success = writeKeyFiles(n, e, d, p, q);
+    if(success != 0) {
+        fprintf(stderr, "ERROR: error writing key files");
+        return 1;
+    }
     return 0;
 }
 
@@ -146,4 +151,26 @@ long modularInverse (long a, long m) {
     }
 
     return res;
+}
+
+int writeKeyFiles(long n, long e, long d, long p, long q) {
+    FILE *pub, *pr;
+    
+    pub = fopen("key.pub", "w");
+    if(pub != NULL) {
+        fprintf(pub, "-----RSA PUBLIC KEY-----\nn=%ld\ne=%ld\n--------END KEY---------\n", n, e);
+        fclose(pub);
+    } else {
+        return 1;
+    }
+
+    pr = fopen("key.pr", "w");    
+    if(pub != NULL) {
+        fprintf(pr, "-----RSA PRIVATE KEY-----\nn=%ld\ne=%ld\nd=%ld\np=%ld\nq=%ld\n---------END KEY---------\n", n, e, d, p, q);
+        fclose(pr);
+    } else {
+        return 1;
+    }
+
+    return 0;
 }

@@ -8,5 +8,6 @@ int modularExp(int,int,int);
 int miller(int);
 long gcd(long,long);
 long modularInverse(long,long);
+int writeKeyFiles(long,long,long,long,long);
 
 #endif // KEYGEN_H_
