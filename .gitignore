@@ -1,6 +1,5 @@
 *~
 .git*
 *.h.gch
-*.out
 message
-key.*
+out
