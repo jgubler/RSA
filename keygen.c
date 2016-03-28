@@ -1,11 +1,12 @@
 #include <keygen.h>
 #include <asn1_lib.h>
+#include <PubKey.h>
+#include <PrKey.h>
+#include <INTEGER.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-#include <INTEGER.h>
-#include <PubKey.h>
 
 
 //keygen.c
@@ -158,8 +159,7 @@ long modularInverse (long a, long m) {
 }
 
 int writeKeyFiles(long n, long e, long d, long p, long q) {
-    printf("the modulus is %ld\ne is %ld\n", n, e);
-
+    // PUBLIC KEY ENCODING
     PubKey_t *pubKey = calloc(1, sizeof(PubKey_t));
     INTEGER_t *mod = calloc(1, sizeof(INTEGER_t));
     INTEGER_t *pubExp = calloc(1, sizeof(INTEGER_t));
@@ -170,20 +170,43 @@ int writeKeyFiles(long n, long e, long d, long p, long q) {
 
     asn_long2INTEGER(mod, n);
     asn_long2INTEGER(pubExp, e);
-
     pubKey->modulus = *mod;
     pubKey->publicExponent = *pubExp;
 
-    pubkey_encode("pub.key", pubKey);
+    pubkey_encode("key.pub", pubKey);
 
-    FILE *pr;
-    pr = fopen("key.pr", "w");    
-    if(pr != NULL) {
-        fprintf(pr, "-----RSA PRIVATE KEY-----\nn=%ld\ne=%ld\nd=%ld\np=%ld\nq=%ld\n---------END KEY---------\n", n, e, d, p, q);
-        fclose(pr);
-    } else {
-        return 1;
+
+    // PRIVATE KEY ENCODING
+    PrKey_t *prKey = calloc(1, sizeof(PubKey_t));
+    INTEGER_t *prExp = calloc(1, sizeof(INTEGER_t));
+    INTEGER_t *prime1 = calloc(1, sizeof(INTEGER_t));
+    INTEGER_t *prime2 = calloc(1, sizeof(INTEGER_t));
+    INTEGER_t *exponent1 = calloc(1, sizeof(INTEGER_t));
+    INTEGER_t *exponent2 = calloc(1, sizeof(INTEGER_t));
+    INTEGER_t *coefficient = calloc(1, sizeof(INTEGER_t));
+    if(!(prKey && mod && pubExp && prExp && prime1 && prime2 
+        && exponent1 && exponent2 && coefficient)) {
+        perror("calloc() failed");
+        exit(1);
     }
+
+    asn_long2INTEGER(prExp, d);
+    asn_long2INTEGER(prime1, p);
+    asn_long2INTEGER(prime2, q);
+    asn_long2INTEGER(exponent1, d%(p-1));
+    asn_long2INTEGER(exponent2, d%(q-1));
+    asn_long2INTEGER(coefficient, modularInverse(q, p));
+
+    prKey->modulus = *mod;
+    prKey->publicExponent = *pubExp;
+    prKey->privateExponent = *prExp;
+    prKey->prime1 = *prime1;
+    prKey->prime2 = *prime2;
+    prKey->exponent1 = *exponent1;
+    prKey->exponent2 = *exponent2;
+    prKey->coefficient = *coefficient;
+
+    prkey_encode("key.pr", prKey);
 
     return 0;
 }

@@ -14,7 +14,7 @@ PrKey ::= SEQUENCE {
 	prime2			INTEGER,
 	exponent1		INTEGER,
 	exponent2		INTEGER,
-	coefficienet	INTEGER
+	coefficient		INTEGER
 }
 
 END

@@ -39,10 +39,12 @@ void printUsage() {
 
 int encrypt() {
 	printf("Can't encrypt yet, but here's the decoded public key:\n");
-	pubkey_decode("pub.key");
+	pubkey_decode("key.pub");
 	return 0;
 }
 
 int decrypt() {
+	printf("Can't decrypt yet, but here's the decoded private key:\n");
+	prkey_decode("key.pr");
 	return 0;
 }
