@@ -1,8 +1,12 @@
 #include <keygen.h>
+#include <asn1_lib.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include <INTEGER.h>
+#include <PubKey.h>
+
 
 //keygen.c
 //Will generate a RSA keypair, sometime in the distant future at least
@@ -154,18 +158,27 @@ long modularInverse (long a, long m) {
 }
 
 int writeKeyFiles(long n, long e, long d, long p, long q) {
-    FILE *pub, *pr;
-    
-    pub = fopen("key.pub", "w");
-    if(pub != NULL) {
-        fprintf(pub, "-----RSA PUBLIC KEY-----\nn=%ld\ne=%ld\n--------END KEY---------\n", n, e);
-        fclose(pub);
-    } else {
-        return 1;
+    printf("the modulus is %ld\ne is %ld\n", n, e);
+
+    PubKey_t *pubKey = calloc(1, sizeof(PubKey_t));
+    INTEGER_t *mod = calloc(1, sizeof(INTEGER_t));
+    INTEGER_t *pubExp = calloc(1, sizeof(INTEGER_t));
+    if(!(pubKey && mod && pubExp)) {
+        perror("calloc() failed");
+        exit(1);
     }
 
+    asn_long2INTEGER(mod, n);
+    asn_long2INTEGER(pubExp, e);
+
+    pubKey->modulus = *mod;
+    pubKey->publicExponent = *pubExp;
+
+    pubkey_encode("pub.key", pubKey);
+
+    FILE *pr;
     pr = fopen("key.pr", "w");    
-    if(pub != NULL) {
+    if(pr != NULL) {
         fprintf(pr, "-----RSA PRIVATE KEY-----\nn=%ld\ne=%ld\nd=%ld\np=%ld\nq=%ld\n---------END KEY---------\n", n, e, d, p, q);
         fclose(pr);
     } else {

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <asn1_lib.h>
 
 int main(int argc, char* argv[]) {
 	if(argc != 4) {
@@ -37,6 +38,8 @@ void printUsage() {
 }
 
 int encrypt() {
+	printf("Can't encrypt yet, but here's the decoded public key:\n");
+	pubkey_decode("pub.key");
 	return 0;
 }
 

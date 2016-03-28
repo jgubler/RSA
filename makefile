@@ -2,8 +2,8 @@
 
 all: rsa asn1 keygen
 
-rsa: rsa.c rsa.h
-	gcc rsa.h rsa.c -o out/rsa -lm
+rsa: rsa.c rsa.h asn1
+	cd out && gcc ../rsa.h ../rsa.c ../asn1_lib.c ../asn1/*.c -o rsa -lm -I.. -I../asn1
 
 keygen: keygen.h keygen.c asn1
 	cd out && gcc ../keygen.h ../keygen.c ../asn1_lib.c ../asn1/*.c -o keygen -lm -I.. -I../asn1
