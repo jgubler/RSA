@@ -1,10 +1,8 @@
 # RSA
-Implementing RSA for learning purposes, obviously still in very early stages.
+Experimenting with RSA implementation for learning purposes, obviously not to be meant for usage in anything else, also limitied to a keygen prototype.
 
-For now, I am working on a keygen prototype.
-
-Things that currently make it cryptographically unsecure:
- - Generated keys are currently 32-Bit
+Main things that currently make it cryptographically insecure, aside from my questionable C programming skills:
+ - Generated keys are 32-Bit
  - Generation of random numbers is done with `rand()`, seeded with `time(NULL)` (I know, I know...)
 
-The reasons are that I didn't want to  deal with large integer arithmetic and external CSPRGN libraries right now.
+This was just to avoid large integer arithmetic and external CSPRGN libraries, as it was never meant for secure production use anyhow.
