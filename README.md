@@ -1,4 +1,4 @@
-# RSA
+# Playing around with RSA implementation (obviously don't use this code)
 Experimenting with RSA implementation for learning purposes, obviously not to be meant for usage in anything else, also limitied to a keygen prototype.
 
 Main things that currently make it cryptographically insecure, aside from my questionable C programming skills:
